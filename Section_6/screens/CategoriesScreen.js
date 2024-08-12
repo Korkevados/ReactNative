@@ -7,7 +7,9 @@ import CategoryGridTile from "../components/CategoryGridTile";
 function CategoriesScreen({ navigation }) {
   function RenderCategory(itemData) {
     function pressHandler() {
-      navigation.navigate("ארוחות");
+      navigation.navigate("MealsOverview", {
+        categoryId: itemData.item.id,
+      });
     }
 
     return (
