@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   listOutercontainer: { alignItems: "center" },
   image: {
     width: "100%",
-    height: 150,
+    height: 350,
   },
   title: {
     fontWeight: "bold",
