@@ -7,25 +7,43 @@ import Subtitle from "../components/MealDetail/Subtitle";
 import List from "../components/MealDetail/List";
 import { useLayoutEffect } from "react";
 import IconButton from "../components/IconButton";
-
+import { useDispatch, useSelector } from "react-redux";
+// import { FavoritesContext } from "../store/context/favorites-contexts";
+import { addFavorite, removeFavorite } from "../store/redux/favorites";
 function MealDetailScreen({ route, navigation }) {
+  // const favoriteContext = useContext(FavoritesContext);
+
+  const favoriteMealids = useSelector((state) => state.favoritesMeals.ids);
+  const dispatch = useDispatch();
   const mealId = route.params.id;
 
   const selectedMeal = MEALS.find((meal) => mealId == meal.id);
 
-  function hedaerbuttonpressed() {
-    console.log("pp");
+  const mealIsfavorite = favoriteMealids.includes(mealId);
+
+  function ChangeFavoriteMeal() {
+    if (mealIsfavorite) {
+      // favoriteContext.removeFavorite(mealId);
+      dispatch(removeFavorite({ id: mealId }));
+    } else {
+      dispatch(addFavorite({ id: mealId }));
+      // favoriteContext.addFavorite(mealId);
+    }
   }
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
         return (
-          <IconButton icon="star" color="white" onPress={hedaerbuttonpressed} />
+          <IconButton
+            icon={mealIsfavorite ? "star" : "star-outline"}
+            color="white"
+            onPress={ChangeFavoriteMeal}
+          />
         );
       },
     });
-  }, [navigation, hedaerbuttonpressed]);
+  }, [navigation, ChangeFavoriteMeal]);
 
   return (
     <ScrollView>
