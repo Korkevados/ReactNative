@@ -1,14 +1,20 @@
 /** @format */
 
-import { useContext, useLayoutEffect } from "react";
+import { useContext, useLayoutEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Title } from "react-native-paper";
 import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../constants/Styles";
 import { ExpensesContext } from "../store/expense_context";
 import ExpenseForm from "../components/ManageExpense/ExpenseForm";
+import { DeleteExpense, storeExpense, updateExpense } from "../util/http";
+import LoadingOverLay from "../components/UI/LoadingOverLay";
+import ErrorOverLay from "../components/UI/ErrorOverLay";
 
 function ManageExpense({ route, navigation }) {
+  const [IsLoading, setIsLoading] = useState(false);
+  const [IsError, setIsError] = useState();
+
   const editesexpenseId = route.params?.expenseId;
 
   const expensesCtx = useContext(ExpensesContext);
@@ -25,20 +31,60 @@ function ManageExpense({ route, navigation }) {
     });
   }, [navigation, isEditing]);
 
-  function deleteHandler() {
-    expensesCtx.deleteExpense(editesexpenseId);
-    navigation.goBack();
+  async function deleteHandler() {
+    setIsLoading(true);
+    try {
+      await DeleteExpense(editesexpenseId);
+      expensesCtx.deleteExpense(editesexpenseId);
+      navigation.goBack();
+    } catch (error) {
+      setIsError("לא הצליח למחוק את המידע");
+      setIsLoading(false);
+    }
   }
+
   function cancelHandler() {
     navigation.goBack();
   }
-  function confirmhandler(expenseData) {
+
+  async function confirmhandler(expenseData) {
+    setIsLoading(true);
+
     if (isEditing) {
-      expensesCtx.updateExpense(editesexpenseId, expenseData);
+      try {
+        await updateExpense(editesexpenseId, expenseData);
+        expensesCtx.updateExpense(editesexpenseId, expenseData);
+        navigation.goBack();
+      } catch (error) {
+        setIsError("לא הצליח לעדכן את ההוצאה");
+        setIsLoading(false);
+      }
     } else {
-      expensesCtx.addExpense(expenseData);
+      try {
+        const id = await storeExpense(expenseData);
+
+        expensesCtx.addExpense({ ...expenseData, id: id });
+        navigation.goBack();
+      } catch (error) {
+        setIsError("לא הצליח להוסיף את ההוצאה");
+        setIsLoading(false);
+      }
     }
-    navigation.goBack();
+  }
+
+  if (IsError && !IsLoading) {
+    return (
+      <ErrorOverLay
+        message={IsError}
+        onConfirm={() => {
+          setIsError(null);
+        }}
+      />
+    );
+  }
+
+  if (IsLoading) {
+    return <LoadingOverLay />;
   }
 
   return (
